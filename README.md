@@ -1,2 +1,2 @@
 # docmanage
-document manager with metadata and full text search
+There is nothing here yet. But someday...
