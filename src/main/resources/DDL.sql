@@ -1,13 +1,12 @@
 create table APP.FILE_METADATA
 (
-    ID BIGINT not null generated always as identity
+    ID BIGINT not null generated always as identity (START WITH 1, INCREMENT BY 1)
         constraint "FILE_METADATA_pk"
         primary key,
     FILE_PATH        VARCHAR(255)                        not null
         unique,
     FILE_SIZE        BIGINT,
     FILE_CHECKSUM    CHAR(64),
-    METADATA         BLOB,
     FILE_CREATED_TS  TIMESTAMP                           not null,
     FILE_MODIFIED_TS TIMESTAMP                           not null,
     CREATED_AT       TIMESTAMP default current_timestamp not null,
@@ -28,8 +27,6 @@ create table APP.METDATA_KEYS
 
 create table APP.METADATA_RECORDS
 (
-    META_VALUE BLOB         not null,
-    TYPE_HINT  INTEGER      not null,
     ID         BIGINT       not null
         constraint "metadata_records_FILE_METADATA_ID_fk"
             references APP.FILE_METADATA
