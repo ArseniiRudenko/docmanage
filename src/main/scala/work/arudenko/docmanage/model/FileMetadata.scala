@@ -22,7 +22,7 @@ import java.security.MessageDigest
 import java.time.{Instant, OffsetDateTime}
 import java.util
 import scala.util.{Failure, Try, Using}
-
+import com.google.common.io.{Files => GuavaFiles}
 case class FileMetadata(
                          id:Long,
                          filePath:String,
@@ -51,7 +51,8 @@ object FileMetadata extends LazyLogging{
 
   def create(path:Path)(using m:ManagedContext):Try[FileMetadata] = {
     //Parser method parameters
-    if(!path.toFile.exists())
+    val file = path.toFile
+    if(!file.exists())
       return Failure(new FileNotFoundException(s"there is no file at path ${path.toString}"))
 
     val attr = Files.readAttributes(path, classOf[BasicFileAttributes])
@@ -60,7 +61,7 @@ object FileMetadata extends LazyLogging{
     val modified:OffsetDateTime = attr.lastModifiedTime().toInstant
     val hash: Option[String] =
       if (attr.isRegularFile)
-        Try(com.google.common.io.Files.asByteSource(path.toFile).hash(Hashing.sha256()).toString).toOption
+        Try(GuavaFiles.asByteSource(file).hash(Hashing.sha256()).toString).toOption
       else
         None
     //create lucene doc
@@ -81,10 +82,9 @@ object FileMetadata extends LazyLogging{
       }
       doc.addId(id)
 
-
-      if (path.toFile.isFile) {
+      if (attr.isRegularFile) {
         //parse doc content
-        Using(new FileInputStream(path.toFile)) { is =>
+        Using(new FileInputStream(file)) { is =>
           val metadata = new Metadata()
           val reader = tika.parse(is, metadata)
           //index content
